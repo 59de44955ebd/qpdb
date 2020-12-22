@@ -26,6 +26,18 @@ pip install PyQt5 QScintilla
 * Click-sensitive "Outline" pane showing classes, methods and top-level functions
 * Context-sensitive help, arbitrary CHM help files can be integrated, as well as Qt Assistant
 
+**Todo**
+
+* Currently qpdb is only made for and tested in Windows, but making it macOS and Linux compatible should be no big deal, I will do this within the next few days.
+* Currently qpdb uses the same Python executable it was started with for debugging scripts, but different Python versions/virtual environments should be supported as well.
+* I might add some additional features to turn it into a real Python code editor, e.g.:
+    * Settings dialog that allows finetuning of the editor's behavior (e.g. concerning line wrapping, tabs etc.)
+    * Search/Replace
+    * Bookmarks
+    * Interactive Python shell for quickly testing stuff inside the app
+    * FullScreen and Distraction-Free edit modes
+    * ...
+
 **Screenshots**
 
 * qpdb debugging its own script:
