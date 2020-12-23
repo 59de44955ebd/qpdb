@@ -28,6 +28,7 @@ pip install PyQt5 QScintilla
 
 **Todo**
 
+* Multithreading support
 * Currently qpdb was only tested in Windows and macOS, but making it Linux compatible should be no big deal.
 * Currently qpdb uses the same Python executable it was started with for debugging scripts, but different Python versions/virtual environments should be supported as well.
 * I might add some additional features to turn it into a real Python code editor, e.g.:
