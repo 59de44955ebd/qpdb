@@ -16,6 +16,10 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QComboBox, QMess
 from PyQt5 import uic
 from PyQt5.Qsci import QsciScintilla, QsciLexer, QsciLexerPython, QsciAPIs
 
+import ast
+import intervaltree
+import tokenize
+
 PATH = os.path.dirname(os.path.realpath(__file__))
 
 #+++++++++++++++++++++++++++++++++++++++
@@ -1186,78 +1190,76 @@ class Main (QMainWindow):
 		self.editor.setFocus(Qt.MouseFocusReason)
 
 	#+++++++++++++++++++++++++++++++++++++++
-	# Updates the class/function list
+	#
 	#+++++++++++++++++++++++++++++++++++++++
 	def update_outline (self):
 		self.outline.clear()
 		if self.__filename is None:
 			return
-		args = ['-n', '-f', '-', self.__filename]
-		proc = QProcess()
-		if os.name == 'nt':
-			proc.start(PATH + '/resources/bin/win/ctags.exe', args)
-		else:
-			proc.start(PATH + '/resources/bin/macos/ctags', args)
-		if not proc.waitForFinished():
-			return False
-		res = proc.readAll().data().decode('utf-8', 'ignore')
-		res = self.__parse_ctags(res)
-
+		classes, functions = self.__file_to_tree(self.__filename)
 		root_item = self.outline.invisibleRootItem()
 
-		classMap = {}
-
 		# classes
-		for c in res['classes']:
-			tree_item = QTreeWidgetItem()
-			tree_item.setText(0, c[0])
-			tree_item.setIcon(0, self.__class_icon)
-			tree_item.setData(0, Qt.UserRole, c[1])
-			root_item.addChild(tree_item)
-			tree_item.setExpanded(True)
-			classMap[c[0]] = tree_item
+		classes = sorted(classes, key = lambda iv: iv[2].name)
+		for iv in classes:
+			begin, end, data = iv
+			methods = functions[begin:end]
+			functions.remove_overlap(begin, end)
+			parent_item = QTreeWidgetItem()
+			parent_item.setText(0, data.name)
+			parent_item.setIcon(0, self.__class_icon)
+			parent_item.setData(0, Qt.UserRole, data.lineno)
+			root_item.addChild(parent_item)
+			parent_item.setExpanded(True)
 
-		# functions
-		for f in res['functions']:
+			# class methods
+			methods = sorted(methods, key = lambda iv: iv[2].name)
+			for iv in methods:
+				begin, end, data = iv
+				tree_item = QTreeWidgetItem()
+				tree_item.setText(0, data.name)
+				tree_item.setIcon(0, self.__meth_icon)
+				tree_item.setData(0, Qt.UserRole, data.lineno)
+				parent_item.addChild(tree_item)
+
+		# top-level functions
+		functions = sorted(functions, key = lambda iv: iv[2].name)
+		for iv in functions:
+			begin, end, data = iv
 			tree_item = QTreeWidgetItem()
-			tree_item.setText(0, f[0])
+			tree_item.setText(0, data.name)
 			tree_item.setIcon(0, self.__func_icon)
-			tree_item.setData(0, Qt.UserRole, f[1])
+			tree_item.setData(0, Qt.UserRole, data.lineno)
 			root_item.addChild(tree_item)
-
-		# methods
-		for m in res['methods']:
-			tree_item = QTreeWidgetItem()
-			tree_item.setText(0, m[0])
-			tree_item.setIcon(0, self.__meth_icon)
-			tree_item.setData(0, Qt.UserRole, m[1])
-			parent_item = classMap[m[2]]
-			parent_item.addChild(tree_item)
 
 	#+++++++++++++++++++++++++++++++++++++++
 	#
 	#+++++++++++++++++++++++++++++++++++++++
-	def __parse_ctags (self, s):
-		lines = s.split('\r\n' if os.name=='nt' else '\n')
-		lines.pop()
-		res = {}
-		res['classes'] = []
-		res['functions'] = []
-		res['methods'] = []
-		for l in lines:
-			parts = l.split('\t')
-			tag_type = parts[3]
-			if tag_type != 'c' and tag_type != 'm' and tag_type != 'f': continue
-			ln = parts[2]
-			ln = int(ln[:len(ln)-2])
-			if tag_type == 'c':
-				res['classes'].append([parts[0], ln]) # name, ln
-			elif tag_type == 'f':
-				res['functions'].append([parts[0], ln])
-			elif tag_type == 'm':
-				cn = parts[4]
-				res['methods'].append([parts[0], ln, cn[6:]])
-		return res
+	def __compute_interval (self, node):
+		min_lineno = node.lineno
+		max_lineno = node.lineno
+		for node in ast.walk(node):
+			if hasattr(node, "lineno"):
+				min_lineno = min(min_lineno, node.lineno)
+				max_lineno = max(max_lineno, node.lineno)
+		return (min_lineno, max_lineno + 1)
+
+	#+++++++++++++++++++++++++++++++++++++++
+	#
+	#+++++++++++++++++++++++++++++++++++++++
+	def __file_to_tree(self, filename):
+		with tokenize.open(filename) as f:
+			parsed = ast.parse(f.read(), filename=filename)
+		classes = intervaltree.IntervalTree()
+		tree = intervaltree.IntervalTree()
+		for node in ast.walk(parsed):
+			if isinstance(node, (ast.ClassDef)):
+				start, end = self.__compute_interval(node)
+				classes[start:end] = node
+			if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+				start, end = self.__compute_interval(node)
+				tree[start:end] = node
+		return classes, tree
 
 	#+++++++++++++++++++++++++++++++++++++++
 	#

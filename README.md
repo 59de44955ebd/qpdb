@@ -3,7 +3,7 @@ A simple graphical Python debugger and code editor based on pdb, PyQt5 and Scint
 
 **Requirements**
 
-pip install PyQt5 QScintilla
+pip install PyQt5 QScintilla intervaltree
 
 **Usage**
 

@@ -401,6 +401,9 @@
          <height>16</height>
         </size>
        </property>
+       <property name="sortingEnabled">
+        <bool>false</bool>
+       </property>
        <property name="headerHidden">
         <bool>true</bool>
        </property>
