@@ -1375,6 +1375,8 @@ class Main (QMainWindow):
 #
 #+++++++++++++++++++++++++++++++++++++++
 def main ():
+	import traceback
+	sys.excepthook = traceback.print_exception
 	app = QApplication(sys.argv)
 	instance = Main()
 	for i in range(1, len(sys.argv)):
