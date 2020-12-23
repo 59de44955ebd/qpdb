@@ -34,7 +34,31 @@ ASSISTANT_BIN = None
 # ASSISTANT_BIN = 'C:\\dev\\qt5\\5.15.2\\msvc2019_64\\bin\\assistant.exe'
 # ASSISTANT_BIN = '/Users/fluxus/Qt/5.15.0/clang_64/bin/Assistant.app/Contents/MacOS/Assistant'
 
+# editor settings
+if os.name == 'nt':
+	DEFAULT_FONT = QFont('Consolas', 10)
+	LINENO_FONT = QFont('Consolas', 8)
+else:
+	DEFAULT_FONT = QFont('Menlo', 12)
+	LINENO_FONT = QFont('Menlo', 10)
+MARGIN_COLOR = QColor('#666666')
+MARGIN_BGCOLOR = QColor('#e0e0e0')
+FOLD_MARGIN_COLOR= QColor('#e0e0e0')
+FOLD_MARGIN_HICOLOR = QColor('#ffffff')
+FOLD_MARGIN_NUM = 2
+FOLD_MARGIN_WIDTH = 14
+FOLDING = 1
+BREAKPOINT_SYMBOL = 0
+BREAKPOINT_COLOR = QColor('#ff0000')
+ACTIVE_LINE_SYMBOL = 22
+ACTIVE_LINE_COLOR = QColor('#ccffcc')
+
 PROC_ENCODING = 'windows-1252' if os.name == 'nt' else 'utf-8'
+API_FILE = PATH + '/resources/prepared.api'
+
+# +++++++++++++++++++++++++++++++++++++++
+# /config
+# +++++++++++++++++++++++++++++++++++++++
 
 
 class SCI:
@@ -51,9 +75,6 @@ class SCI:
 	STYLE_LINENUMBER = 33
 	STYLE_STDOUT = 1
 	STYLE_STDERR = 2
-
-
-API_FILE = PATH + '/resources/prepared.api'
 
 
 # +++++++++++++++++++++++++++++++++++++++
@@ -118,28 +139,9 @@ class Main(QMainWindow):
 		# breakpoint marker
 		self.__breakpoint_marker_num = 1
 		self.__breakpoint_marker_mask = 2 ** self.__breakpoint_marker_num
-		self.__breakpoint_symbol = 0
-		self.__breakpoint_color = QColor('#ff0000')
 
 		# active line marker
 		self.__active_line_marker_num = 2
-		self.__active_line_symbol = 22
-		self.__active_line_color = QColor('#ccffcc')
-
-		# editor settings
-		if os.name == 'nt':
-			self.__default_font = QFont('Consolas', 10)
-			self.__linenum_font = QFont('Consolas', 8)
-		else:
-			self.__default_font = QFont('Menlo', 12)
-			self.__linenum_font = QFont('Menlo', 10)
-		self.__margin_color = QColor('#666666')
-		self.__margin_bgcolor = QColor('#e0e0e0')
-		self.__fold_margin_color = QColor('#e0e0e0')
-		self.__fold_margin_hicolor = QColor('#ffffff')
-		self.__fold_margin_num = 2
-		self.__fold_margin_width = 14
-		self.__folding = 1
 
 		self.setup_actions()
 		self.setup_lists()
@@ -409,8 +411,8 @@ class Main(QMainWindow):
 		# self.setAcceptDrops(False) # needed for macos
 
 		# set default editor settings
-		self.editor.setFont(self.__default_font)
-		self.editor.setMarginsFont(self.__linenum_font)
+		self.editor.setFont(DEFAULT_FONT)
+		self.editor.setMarginsFont(LINENO_FONT)
 
 		self.editor.setBraceMatching(QsciScintilla.SloppyBraceMatch)
 
@@ -447,45 +449,45 @@ class Main(QMainWindow):
 		lexer = QsciLexerPython(self)
 
 		# apply default settings to lexer
-		lexer.setDefaultFont(self.__default_font)
-		lexer.setFont(self.__default_font)
+		lexer.setDefaultFont(DEFAULT_FONT)
+		lexer.setFont(DEFAULT_FONT)
 
 		# margins
-		lexer.setPaper(self.__margin_bgcolor, SCI.STYLE_LINENUMBER)
-		lexer.setColor(self.__margin_color, SCI.STYLE_LINENUMBER)
-		lexer.setFont(self.__default_font, SCI.STYLE_LINENUMBER)
+		lexer.setPaper(MARGIN_BGCOLOR, SCI.STYLE_LINENUMBER)
+		lexer.setColor(MARGIN_COLOR, SCI.STYLE_LINENUMBER)
+		lexer.setFont(DEFAULT_FONT, SCI.STYLE_LINENUMBER)
 
 		# assign the lexer
 		self.editor.setLexer(lexer)
 		self.editor.SendScintilla(SCI.SCI_COLOURISE, 0, -1)
 
 		# margins
-		self.editor.setMarginsBackgroundColor(self.__margin_bgcolor)
-		self.editor.setMarginsForegroundColor(self.__margin_color)
-		self.editor.setMarginsFont(self.__linenum_font)
+		self.editor.setMarginsBackgroundColor(MARGIN_BGCOLOR)
+		self.editor.setMarginsForegroundColor(MARGIN_COLOR)
+		self.editor.setMarginsFont(LINENO_FONT)
 
 		# folding
-		self.editor.setFolding(self.__folding)
-		self.editor.SendScintilla(SCI.SCI_SETMARGINWIDTHN, self.__fold_margin_num, self.__fold_margin_width)
+		self.editor.setFolding(FOLDING)
+		self.editor.SendScintilla(SCI.SCI_SETMARGINWIDTHN, FOLD_MARGIN_NUM, FOLD_MARGIN_WIDTH)
 		# set fold margin colors
-		self.editor.SendScintilla(SCI.SCI_SETFOLDMARGINCOLOUR, True, Main.color_to_bgr_int(self.__fold_margin_color))
+		self.editor.SendScintilla(SCI.SCI_SETFOLDMARGINCOLOUR, True, Main.color_to_bgr_int(FOLD_MARGIN_COLOR))
 		self.editor.SendScintilla(SCI.SCI_SETFOLDMARGINHICOLOUR, True,
-				Main.color_to_bgr_int(self.__fold_margin_hicolor))
+				Main.color_to_bgr_int(FOLD_MARGIN_HICOLOR))
 
 		# create and configure the breakpoint column
 		self.editor.setMarginWidth(self.__symbol_margin_num, 17)
-		self.editor.markerDefine(self.__breakpoint_symbol, self.__breakpoint_marker_num)
+		self.editor.markerDefine(BREAKPOINT_SYMBOL, self.__breakpoint_marker_num)
 		self.editor.setMarginMarkerMask(self.__symbol_margin_num, self.__breakpoint_marker_mask)
-		self.editor.setMarkerBackgroundColor(self.__breakpoint_color, self.__breakpoint_marker_num)
+		self.editor.setMarkerBackgroundColor(BREAKPOINT_COLOR, self.__breakpoint_marker_num)
 		# make breakpoint margin clickable
 		self.editor.setMarginSensitivity(self.__symbol_margin_num, True)
 		# add new callback for breakpoints
 		self.editor.marginClicked.connect(self.slot_margin_clicked)
 
 		# setup active line marker
-		self.editor.markerDefine(self.__active_line_symbol, self.__active_line_marker_num)
-		self.editor.setMarkerForegroundColor(self.__active_line_color, self.__active_line_marker_num)
-		self.editor.setMarkerBackgroundColor(self.__active_line_color, self.__active_line_marker_num)
+		self.editor.markerDefine(ACTIVE_LINE_SYMBOL, self.__active_line_marker_num)
+		self.editor.setMarkerForegroundColor(ACTIVE_LINE_COLOR, self.__active_line_marker_num)
+		self.editor.setMarkerBackgroundColor(ACTIVE_LINE_COLOR, self.__active_line_marker_num)
 
 		# connect signals
 		self.editor.textChanged.connect(self.slot_text_changed)
