@@ -1,5 +1,5 @@
 # qpdb
-A simple graphical Python debugger and code editor based on pdb, PyQt5 and Scintilla
+A simple graphical Python 3 debugger and code editor based on pdb, PyQt5 and Scintilla
 
 **Requirements**
 
