@@ -16,17 +16,23 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QComboBox, QMess
 from PyQt5 import uic
 from PyQt5.Qsci import QsciScintilla, QsciLexer, QsciLexerPython, QsciAPIs
 
+PATH = os.path.dirname(os.path.realpath(__file__))
+
 #+++++++++++++++++++++++++++++++++++++++
 # config
 #+++++++++++++++++++++++++++++++++++++++
 
-CHM_FILES = []
-#CHM_FILES = ['C:\\dev\\python\\python_3.7.4-x64\\Doc\\python374.chm']
+# Note: CHM support in macos requires xchm, which you can install with MacPorts:
+# port install xchm
+CHM_FILES = [
+	PATH+'/resources/python374.chm'
+]
 
 ASSISTANT_BIN = None
 #ASSISTANT_BIN = 'C:\\dev\\qt5\\5.15.2\\msvc2019_64\\bin\\assistant.exe'
+#ASSISTANT_BIN = '/Users/fluxus/Qt/5.15.0/clang_64/bin/Assistant.app/Contents/MacOS/Assistant'
 
-PROC_ENCODING = 'windows-1252'
+PROC_ENCODING = 'windows-1252' if os.name == 'nt' else 'utf-8'
 
 class SCI():
 	SCI_COLOURISE = 4003
@@ -43,7 +49,6 @@ class SCI():
 	STYLE_STDOUT = 1
 	STYLE_STDERR = 2
 
-PATH = os.path.dirname(os.path.realpath(__file__))
 API_FILE = PATH+'/resources/prepared.api'
 
 #+++++++++++++++++++++++++++++++++++++++
@@ -146,6 +151,7 @@ class Main (QMainWindow):
 		self.__dbg_running = False
 		self.__filename = None
 		self.__saved_breakpoints = {}
+		self.__encoding = 'UTF-8'
 
 		self.__re_active = re.compile('^> (.*)\(([0-9]+)\)')
 		self.__re_bp_add = re.compile('^Breakpoint ([0-9]+) at (.*):([0-9]+)')
@@ -172,6 +178,8 @@ class Main (QMainWindow):
 		self.setup_console()
 		self.setup_editor()
 		self.setup_outline()
+
+		self.setWindowTitle('unsaved[*] - qpdb')
 
 		# restore window state
 		self.__state = QSettings('fx', 'qpdb')
@@ -258,6 +266,7 @@ class Main (QMainWindow):
 		self.actionLoad.triggered.connect(self.slot_load)
 		self.actionClose.triggered.connect(self.slot_close)
 		self.actionSave.triggered.connect(self.slot_save)
+		self.actionSaveAs.triggered.connect(self.slot_save_as)
 
 		self.actionUndo.triggered.connect(self.editor.undo)
 		self.actionRedo.triggered.connect(self.editor.redo)
@@ -284,16 +293,17 @@ class Main (QMainWindow):
 				self.editor.setWhitespaceVisibility(QsciScintilla.WsVisible if checked else QsciScintilla.WsInvisible))
 		self.actionShowEol.triggered.connect(self.editor.setEolVisibility)
 
-		for i in range(len(CHM_FILES)):
-			a = QAction(os.path.basename(CHM_FILES[i]), self.menuHelp)
-			a.triggered.connect(lambda _,chm=CHM_FILES[i]: self.slot_help_chm(chm))
-			if i<11:
-				a.setShortcut(QKeySequence('F'+str(i+1)))
+		i = 0
+		for i in range(1, len(CHM_FILES)+1):
+			a = QAction(os.path.basename(CHM_FILES[i-1]), self.menuHelp)
+			a.triggered.connect(lambda _,chm=CHM_FILES[i-1]: self.slot_help_chm(chm))
+			if i<12:
+				a.setShortcut(QKeySequence('F'+str(i)))
 			self.menuHelp.addAction(a)
 		if ASSISTANT_BIN and os.path.isfile(ASSISTANT_BIN):
 			a = QAction('Qt Assistant', self.menuHelp)
 			a.triggered.connect(self.slot_help_assistant)
-			a.setShortcut(QKeySequence('F12'))
+			a.setShortcut(QKeySequence('F'+str(i+1)))
 			self.menuHelp.addAction(a)
 
 		self.actionAbout.triggered.connect(self.slot_about)
@@ -344,9 +354,13 @@ class Main (QMainWindow):
 		# hide the default fold margin
 		self.console.setMarginWidth(1, 0)
 
-		# set theme colors
-		font_family = 'Consolas'
-		font_size = 9.0
+		if os.name=='nt':
+			font_family = 'Consolas'
+			font_size = 9
+		else:
+			font_family = 'Menlo'
+			font_size = 11
+
 		colors = ('#000000', '#0000ff', '#ff0000', '#8080ff')
 		for i in range(len(colors)):
 			self.console.SendScintilla(SCI.SCI_STYLESETFORE, i, self.__color_to_bgr_int(QColor(colors[i])))
@@ -370,9 +384,12 @@ class Main (QMainWindow):
 	def setup_editor (self):
 
 		# settings
-
-		self.__default_font = QFont('Consolas', 10)
-		self.__linenum_font = QFont('Consolas', 8)
+		if os.name=='nt':
+			self.__default_font = QFont('Consolas', 10)
+			self.__linenum_font = QFont('Consolas', 8)
+		else:
+			self.__default_font = QFont('Menlo', 12)
+			self.__linenum_font = QFont('Menlo', 10)
 
 		self.__margin_color = QColor('#666666')
 		self.__margin_bgcolor = QColor('#e0e0e0')
@@ -533,10 +550,35 @@ class Main (QMainWindow):
 	#
 	#+++++++++++++++++++++++++++++++++++++++
 	def slot_save (self):
+		if self.__filename is None:
+			return self.slot_save_as()
 		try:
 			with open(self.__filename, 'wb') as f:
 				f.write(self.editor.text().encode(self.__encoding))
 			self.editor.setModified(False)
+			self.update_outline()
+			return True
+		except:
+			return False
+
+	#+++++++++++++++++++++++++++++++++++++++
+	#
+	#+++++++++++++++++++++++++++++++++++++++
+	def slot_save_as (self):
+		fn, ok = QFileDialog.getSaveFileName(self, 'Save Python Script', '', 'Python Files (*.py *.pyw);;All Files (*.*)')
+		if not ok:
+			return False
+		try:
+			fn = os.path.realpath(fn).lower() # normalize
+			with open(fn, 'wb') as f:
+				f.write(self.editor.text().encode(self.__encoding))
+			if self.comboBoxFiles.findText(fn)<0:
+				self.comboBoxFiles.addItem(fn)
+			self.comboBoxFiles.setCurrentText(fn)
+			self.__filename = fn
+			self.editor.append('') # clear undo history
+			self.editor.setModified(False)
+			self.setWindowTitle(os.path.basename(self.__filename)+'[*] - qpdb')
 			self.update_outline()
 			return True
 		except:
@@ -604,7 +646,6 @@ class Main (QMainWindow):
 
 		if self.comboBoxFiles.findText(fn)<0:
 			self.comboBoxFiles.addItem(fn)
-
 		self.comboBoxFiles.setCurrentText(fn)
 
 		# if another script is already opened, save its breakpoints
@@ -621,9 +662,7 @@ class Main (QMainWindow):
 		self.__encoding = self.__get_encoding(data)
 		self.editor.setUtf8(True)
 		s = data.decode(self.__encoding, 'ignore')
-
-		self.setWindowTitle('qpdb - '+os.path.basename(self.__filename)+'[*]')
-
+		self.setWindowTitle(os.path.basename(self.__filename)+'[*] - qpdb')
 		self.editor.textChanged.disconnect(self.slot_text_changed)
 		self.editor.setText(s) # triggers textChanged
 		self.editor.textChanged.connect(self.slot_text_changed)
@@ -673,8 +712,9 @@ class Main (QMainWindow):
 		self.listWidgetBreakpoints.clear()
 
 		self.__filename = None
+		self.__encoding = 'UTF-8'
 		self.editor.setModified(False)
-		self.setWindowTitle('qpdb')
+		self.setWindowTitle('unsaved[*] - qpdb')
 		self.update_ui()
 		self.labelInfo.clear()
 
@@ -733,7 +773,7 @@ class Main (QMainWindow):
 	#
 	#+++++++++++++++++++++++++++++++++++++++
 	def __handle_chunk (self, msg):
-		lines = msg.split('\r\n')
+		lines = msg.split('\r\n' if os.name=='nt' else '\n')
 		for i in range(len(lines)):
 			l = lines[i]
 			if l == '':
@@ -1066,6 +1106,13 @@ class Main (QMainWindow):
 	#+++++++++++++++++++++++++++++++++++++++
 	def slot_editor_modification_changed (self, changed):
 		self.setWindowModified(changed)
+
+		# qt5 bug fix for macos
+		if os.name != 'nt':
+			s = self.windowTitle()
+			self.setWindowTitle('')
+			self.setWindowTitle(s)
+
 		self.actionSave.setEnabled(changed)
 		self.actionUndo.setEnabled(self.editor.isUndoAvailable())
 		self.actionRedo.setEnabled(self.editor.isRedoAvailable())
@@ -1147,7 +1194,10 @@ class Main (QMainWindow):
 			return
 		args = ['-n', '-f', '-', self.__filename]
 		proc = QProcess()
-		proc.start(PATH + '/resources/bin/ctags.exe', args)
+		if os.name == 'nt':
+			proc.start(PATH + '/resources/bin/win/ctags.exe', args)
+		else:
+			proc.start(PATH + '/resources/bin/macos/ctags', args)
 		if not proc.waitForFinished():
 			return False
 		res = proc.readAll().data().decode('utf-8', 'ignore')
@@ -1188,7 +1238,7 @@ class Main (QMainWindow):
 	#
 	#+++++++++++++++++++++++++++++++++++++++
 	def __parse_ctags (self, s):
-		lines = s.split('\r\n')
+		lines = s.split('\r\n' if os.name=='nt' else '\n')
 		lines.pop()
 		res = {}
 		res['classes'] = []
@@ -1270,15 +1320,22 @@ class Main (QMainWindow):
 	#
 	#+++++++++++++++++++++++++++++++++++++++
 	def slot_help_chm (self, chm_file):
-		s = self.editor.selectedText()
-		if s == '':
-			args = ['-DirHelp', chm_file]
+		if os.name == 'nt':
+			s = self.editor.selectedText()
+			if s == '':
+				args = ['-DirHelp', chm_file]
+			else:
+				args = ['-#klink', s, '-DirHelp', chm_file]
+			proc = QProcess()
+			proc.setProgram(PATH + '/resources/bin/win/KeyHH.exe')
+			proc.setArguments(args)
+			proc.startDetached()
 		else:
-			args = ['-#klink', s, '-DirHelp', chm_file]
-		proc = QProcess()
-		proc.setProgram(PATH + '/resources/bin/KeyHH.exe')
-		proc.setArguments(args)
-		proc.startDetached()
+			proc = QProcess()
+			# install with MacPorts: port install xchm
+			proc.setProgram('/opt/local/bin/xchm')
+			proc.setArguments([chm_file])
+			proc.startDetached()
 
 	#+++++++++++++++++++++++++++++++++++++++
 	#
@@ -1301,7 +1358,7 @@ class Main (QMainWindow):
 	def slot_about (self):
 		QMessageBox.about(self, 'About qpdb', '''
 			<b>qpdb</b><br>(c) 2020 Valentin Schmidt<br><br>
-			A simple graphical Python debugger and code editor<br>
+			A simple graphical Python debugger and code editor
 			based on pdb, PyQt5 and Scintilla.
 			''')
 

@@ -28,7 +28,7 @@ pip install PyQt5 QScintilla
 
 **Todo**
 
-* Currently qpdb is only made for and tested in Windows, but making it macOS and Linux compatible should be no big deal, I will do this within the next few days.
+* Currently qpdb was only tested in Windows and macOS, but making it Linux compatible should be no big deal.
 * Currently qpdb uses the same Python executable it was started with for debugging scripts, but different Python versions/virtual environments should be supported as well.
 * I might add some additional features to turn it into a real Python code editor, e.g.:
     * Settings dialog that allows finetuning of the editor's behavior (e.g. concerning line wrapping, tabs etc.)
@@ -40,9 +40,13 @@ pip install PyQt5 QScintilla
 
 **Screenshots**
 
-* qpdb debugging its own script:
+* qpdb debugging its own script (Windows 8.1):
 
   ![](screenshots/qpdb_debugging.png)
+
+* qpdb debugging its own script (macOS 10.15 Catalina):
+
+  ![](screenshots/qpdb_debugging_macos.png)
 
 * Autocomplete:
 
