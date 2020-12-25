@@ -1,2 +1,2 @@
-@rcc -o main.rcc -binary icons/icons.qrc
-::pause
+@rcc -o ..\qpdb\resources\main.rcc -binary main.qrc
+pause

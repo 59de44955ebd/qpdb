@@ -17,7 +17,7 @@
    <string>qpdb</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../helper/icons/icons.qrc">
+   <iconset resource="../../helper/main.qrc">
     <normaloff>:/icons/debug.png</normaloff>:/icons/debug.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -115,6 +115,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionRun"/>
+   <addaction name="separator"/>
    <addaction name="actionDebug"/>
    <addaction name="actionContinue"/>
    <addaction name="actionStepInto"/>
@@ -425,11 +427,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/debug.png</normaloff>:/icons/debug.png</iconset>
    </property>
    <property name="text">
     <string>Debug</string>
+   </property>
+   <property name="toolTip">
+    <string>Debug current script (F5)</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
   <action name="actionContinue">
@@ -437,11 +445,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/step-continue.png</normaloff>:/icons/step-continue.png</iconset>
    </property>
    <property name="text">
     <string>Continue</string>
+   </property>
+   <property name="toolTip">
+    <string>Continue (F6)</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
    </property>
   </action>
   <action name="actionStepInto">
@@ -449,11 +463,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/step-into.png</normaloff>:/icons/step-into.png</iconset>
    </property>
    <property name="text">
     <string>Step Into</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Into (F7)</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
    </property>
   </action>
   <action name="actionStepOver">
@@ -461,11 +481,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/step-over.png</normaloff>:/icons/step-over.png</iconset>
    </property>
    <property name="text">
     <string>Step Over</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Over (F8)</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
    </property>
   </action>
   <action name="actionStepOut">
@@ -473,11 +499,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/step-out.png</normaloff>:/icons/step-out.png</iconset>
    </property>
    <property name="text">
     <string>Step Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Out (F9)</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
   <action name="actionToggleBreakpoint">
@@ -485,11 +517,17 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/toggle-breakpoint.png</normaloff>:/icons/toggle-breakpoint.png</iconset>
    </property>
    <property name="text">
     <string>Toggle Breakpoint</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Breakpoint (F10)</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
    </property>
   </action>
   <action name="actionClearBreakpoints">
@@ -497,7 +535,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../helper/icons/icons.qrc">
+    <iconset resource="../../helper/main.qrc">
      <normaloff>:/icons/clear-breakpoints.png</normaloff>:/icons/clear-breakpoints.png</iconset>
    </property>
    <property name="text">
@@ -542,9 +580,6 @@
    </property>
    <property name="toolTip">
     <string>Close All</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F4</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -658,6 +693,27 @@
     <string>Save As...</string>
    </property>
   </action>
+  <action name="actionRun">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../helper/main.qrc">
+     <normaloff>:/icons/run.png</normaloff>:/icons/run.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run</string>
+   </property>
+   <property name="toolTip">
+    <string>Run current script (F4)</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -668,7 +724,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../helper/icons/icons.qrc"/>
+  <include location="../../helper/main.qrc"/>
  </resources>
  <connections>
   <connection>

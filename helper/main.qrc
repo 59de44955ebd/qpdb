@@ -1,0 +1,16 @@
+<RCC>
+  <qresource>
+    <file>icons/run.png</file>
+    <file>icons/outline-method.png</file>
+    <file>icons/outline-function.png</file>
+    <file>icons/outline-class.png</file>
+    <file>icons/debug.png</file>
+    <file>icons/step-continue.png</file>
+    <file>icons/step-into.png</file>
+    <file>icons/step-out.png</file>
+    <file>icons/step-over.png</file>
+    <file>icons/toggle-breakpoint.png</file>
+    <file>icons/clear-breakpoints.png</file>
+    <file>style.css</file>
+  </qresource>
+</RCC>

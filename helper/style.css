@@ -1,0 +1,17 @@
+QDockWidget{
+	font-size:11px;
+	margin:0px;
+	padding:0px;
+	border-width:0px;
+}
+QDockWidget::title{
+	border-left:1px solid #b9b9b9;
+	padding-top:3px;
+	padding-left:2px;
+	padding-bottom:0px;
+	background:#dadada;
+}
+QMainWindow::separator{
+	height:1px;
+	background:#dadada;
+}
