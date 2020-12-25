@@ -15,7 +15,7 @@ def _dump(obj, stack):
         return (type(obj).__name__, str(obj))
     try:
         if obj in stack:
-            return [type(obj).__name__+' <recursion>', str(obj)]
+            return (type(obj).__name__+' <recursion>', str(obj))
 
         if type(obj).__name__=='module':
             return ('module', str(obj))
