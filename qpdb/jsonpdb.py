@@ -40,8 +40,8 @@ def _dump(obj, stack):
 class JsonPdb(Pdb):
     """ Extends Pdb with JSON output. """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
+        super().__init__()
         self.use_rawinput = 0
 
     def do_dump(self, _):
@@ -69,10 +69,10 @@ def main():
     # modified by the script being debugged. It's a bad idea when it was
     # changed by the user from the command line. There is a "restart" command
     # which allows explicit specification of command line arguments.
-    _pdb = JsonPdb()
+    json_pdb = JsonPdb()
     while True:
         try:
-            _pdb._runscript(mainpyfile)
+            json_pdb._runscript(mainpyfile)
         except SystemExit:
             break
         except SyntaxError:
@@ -83,7 +83,7 @@ def main():
             print("Uncaught exception. Entering post mortem debugging")
             print("Running 'Continue' or 'Step...' will restart the program")
             t = sys.exc_info()[2]
-            _pdb.interaction(None, t)
+            json_pdb.interaction(None, t)
             print("Post mortem debugger finished. The " + mainpyfile +
                   " will be restarted")
 

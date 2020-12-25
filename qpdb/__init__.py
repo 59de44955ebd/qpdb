@@ -35,7 +35,7 @@ CHM_FILES = [
 ]
 
 ASSISTANT_BIN = None
-ASSISTANT_BIN = 'C:\\dev\\qt5\\5.15.2\\msvc2019_64\\bin\\assistant.exe'
+# ASSISTANT_BIN = 'C:\\dev\\qt5\\5.15.2\\msvc2019_64\\bin\\assistant.exe'
 # ASSISTANT_BIN = '/Users/fluxus/Qt/5.15.0/clang_64/bin/Assistant.app/Contents/MacOS/Assistant'
 
 API_FILE = PATH + '/resources/prepared.api'
@@ -793,7 +793,7 @@ class Main(QMainWindow):
 
     def _toggle_breakpoint(self, lineno):
         mask = self.editor.markersAtLine(lineno)
-        if mask & self.__breakpoint_marker_mask: # line has a breakpoint, so remove it
+        if mask & self.__breakpoint_marker_mask:  # line has a breakpoint, so remove it
             # find the marker_handle
             for row in range(self.listWidgetBreakpoints.count()):
                 list_item = self.listWidgetBreakpoints.item(row)
@@ -807,7 +807,7 @@ class Main(QMainWindow):
             if self.__dbg_running:
                 self.__proc.write(
                     ('cl ' + self.__filename + ':' + str(lineno + 1) + '\n').encode(PROC_ENCODING))
-        else: # line has no breakpoint, so add a new one
+        else:  # line has no breakpoint, so add a new one
             # check if valid position
             txt = self.editor.text(lineno).strip()
             if txt == '' or txt[0] == '#':
